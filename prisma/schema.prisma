@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  email String @unique
+  password String
+  firstName String?
+  lastName String?
+  projects Project[]
+  tasks Task[]
+}
+model Project {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  ownerId String @db.ObjectId
+  owner User @relation(fields: [ownerId],references: [id])
+  name String
+  description String?
+  due DateTime?
+  tasks Task[]
+  @@unique([ownerId,name])
+  @@index([ownerId,id])
+
+
+}
+enum TASK_STATUS{
+  not_started
+  started
+  completed
+}
+model Task {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+  ownerId String @db.ObjectId
+  owner User @relation(fields: [ownerId],references: [id])
+  projectId String @db.ObjectId
+  project Project @relation(fields: [projectId],references: [id])
+  status TASK_STATUS @default(not_started)
+  name String
+  description String
+  due DateTime?
+  deleted Boolean @default(false)
+  
+  @@index([ownerId])
+}
